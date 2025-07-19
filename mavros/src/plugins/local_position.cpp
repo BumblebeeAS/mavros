@@ -140,7 +140,12 @@ private:
     mavlink::common::msg::LOCAL_POSITION_NED & pos_ned,
     plugin::filter::SystemAndOk filter [[maybe_unused]])
   {
+    std::cout << "[DEBUG] Received LOCAL_POSITION_NED" << std::endl;
     has_local_position_ned = true;
+    std::cout << "[DEBUG] has_local_position_ned set to true" << std::endl;
+
+    std::cout << "[DEBUG] Position NED: x=" << pos_ned.x
+            << ", y=" << pos_ned.y << ", z=" << pos_ned.z << std::endl;
 
     //--------------- Transform FCU position and Velocity Data ---------------//
     auto enu_position = ftf::transform_frame_ned_enu(
@@ -169,9 +174,10 @@ private:
 
     // publish odom if we don't have LOCAL_POSITION_NED_COV
     if (!has_local_position_ned_cov) {
+      std::cout << "[DEBUG] Publishing local_odom (no COV present)" << std::endl;
       local_odom->publish(odom);
     }
-
+    std::cout << "[DEBUG] Publishing local_position (PoseStamped)" << std::endl;
     // publish pose always
     auto pose = geometry_msgs::msg::PoseStamped();
     pose.header = odom.header;
@@ -180,6 +186,7 @@ private:
 
     // publish velocity always
     // velocity in the body frame
+    std::cout << "[DEBUG] Publishing local_velocity_body (TwistStamped)" << std::endl;
     auto twist_body = geometry_msgs::msg::TwistStamped();
     twist_body.header.stamp = odom.header.stamp;
     twist_body.header.frame_id = tf_child_frame_id;
@@ -188,6 +195,7 @@ private:
     local_velocity_body->publish(twist_body);
 
     // velocity in the local frame
+    std::cout << "[DEBUG] Publishing local_velocity_local (TwistStamped)" << std::endl;
     auto twist_local = geometry_msgs::msg::TwistStamped();
     twist_local.header.stamp = twist_body.header.stamp;
     twist_local.header.frame_id = tf_child_frame_id;
@@ -199,6 +207,7 @@ private:
     local_velocity_local->publish(twist_local);
 
     // publish tf
+    std::cout << "[DEBUG] Publishing TF" << std::endl;
     publish_tf(odom);
   }
 
@@ -207,7 +216,12 @@ private:
     mavlink::common::msg::LOCAL_POSITION_NED_COV & pos_ned,
     plugin::filter::SystemAndOk filter [[maybe_unused]])
   {
+    std::cout << "[DEBUG] Received LOCAL_POSITION_NED_COV" << std::endl;
     has_local_position_ned_cov = true;
+  std::cout << "[DEBUG] has_local_position_ned_cov set to true" << std::endl;
+
+  std::cout << "[DEBUG] Position NED (COV): x=" << pos_ned.x
+            << ", y=" << pos_ned.y << ", z=" << pos_ned.z << std::endl;
 
     auto enu_position = ftf::transform_frame_ned_enu(
       Eigen::Vector3d(
@@ -241,15 +255,18 @@ private:
     // TODO(vooon): orientation + angular velocity covariances from ATTITUDE_QUATERION_COV
 
     // publish odom always
+     std::cout << "[DEBUG] Publishing local_odom (COV)" << std::endl;
     local_odom->publish(odom);
 
     // publish pose_cov always
+    std::cout << "[DEBUG] Publishing local_position_cov (PoseWithCovarianceStamped)" << std::endl;
     auto pose_cov = geometry_msgs::msg::PoseWithCovarianceStamped();
     pose_cov.header = odom.header;
     pose_cov.pose = odom.pose;
     local_position_cov->publish(pose_cov);
 
     // publish velocity_cov always
+    std::cout << "[DEBUG] Publishing local_velocity_cov (TwistWithCovarianceStamped)" << std::endl;
     auto twist_cov = geometry_msgs::msg::TwistWithCovarianceStamped();
     twist_cov.header.stamp = odom.header.stamp;
     twist_cov.header.frame_id = odom.child_frame_id;
@@ -258,6 +275,7 @@ private:
 
     // publish pose, velocity, tf if we don't have LOCAL_POSITION_NED
     if (!has_local_position_ned) {
+      std::cout << "[DEBUG] has_local_position_ned is false, publishing fallback local_position + twist" << std::endl;
       auto pose = geometry_msgs::msg::PoseStamped();
       pose.header = odom.header;
       pose.pose = odom.pose.pose;
@@ -270,10 +288,12 @@ private:
       local_velocity_body->publish(twist);
 
       // publish tf
+      std::cout << "[DEBUG] Publishing TF (from COV fallback)" << std::endl;
       publish_tf(odom);
     }
 
     // publish accelerations
+    std::cout << "[DEBUG] Publishing local_accel (AccelWithCovarianceStamped)" << std::endl;
     auto accel = geometry_msgs::msg::AccelWithCovarianceStamped();
     accel.header = odom.header;
 

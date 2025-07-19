@@ -244,15 +244,18 @@ private:
     /**
      * Required affine rotations to apply transforms
      */
-    Eigen::Affine3d tf_parent2parent_des;
-    Eigen::Affine3d tf_child2child_des;
+    // Eigen::Affine3d tf_parent2parent_des;
+    // Eigen::Affine3d tf_child2child_des;
+    Eigen::Affine3d tf_parent2parent_des = Eigen::Affine3d::Identity();
+    Eigen::Affine3d tf_child2child_des = Eigen::Affine3d::Identity();
 
-    lookup_static_transform(
-      odom->header.frame_id + "_ned", odom->header.frame_id,
-      tf_parent2parent_des);
-    lookup_static_transform(
-      odom->child_frame_id + "_frd", odom->child_frame_id,
-      tf_child2child_des);
+
+    // lookup_static_transform(
+    //   odom->header.frame_id + "_ned", odom->header.frame_id,
+    //   tf_parent2parent_des);
+    // lookup_static_transform(
+    //   odom->child_frame_id + "_frd", odom->child_frame_id,
+    //   tf_child2child_des);
 
     //! Build 6x6 pose covariance matrix to be transformed and sent
     ftf::Covariance6d cov_pose = odom->pose.covariance;
