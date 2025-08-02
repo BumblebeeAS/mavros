@@ -58,6 +58,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(dvl_msgs REQUIRED)
 
 include_directories(
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -130,6 +131,7 @@ add_library(mavros_extras_plugins SHARED
   src/plugins/vision_pose_estimate.cpp
   src/plugins/vision_speed_estimate.cpp
   src/plugins/wheel_odometry.cpp
+  src/plugins/vision_pose_delta.cpp
   # [[[end]]] (checksum: 4564d922cfa3d36bf2089dade2323259)
 )
 ament_target_dependencies(mavros_extras_plugins
@@ -154,6 +156,7 @@ ament_target_dependencies(mavros_extras_plugins
   message_filters
   Eigen3
   yaml_cpp_vendor
+  dvl_msgs
 )
 pluginlib_export_plugin_description_file(mavros mavros_plugins.xml)
 

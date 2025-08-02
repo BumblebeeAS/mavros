@@ -29,3 +29,4 @@
       - manual_control
       - odometry
       - vision_pose
+      - vision_position_delta

@@ -9,7 +9,7 @@
 # sys_status
 /**/sys:
   ros__parameters:
-    min_voltage: [10.0]   # diagnostics min voltage, use a vector i.e. [16.2, 16.0] for multiple batteries, up-to 10 are supported
+    min_voltage: [15.0]   # diagnostics min voltage, use a vector i.e. [16.2, 16.0] for multiple batteries, up-to 10 are supported
                           # to achieve the same on a ROS launch file do: <rosparam param="sys/min_voltage">[16.2, 16.0]</rosparam>
     disable_diag: false   # disable all sys_status diagnostics, except heartbeat
     heartbeat_rate: 1.0   # send heartbeat rate in Hertz
