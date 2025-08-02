@@ -10,6 +10,7 @@
 #include "mavros/utils.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rcpputils/asserts.hpp"
+#include "std_srvs/srv/trigger.hpp"
 #include "tf2_eigen/tf2_eigen.hpp"
 
 namespace mavros {
@@ -33,6 +34,8 @@ class VisionPositionDeltaPlugin : public plugin::Plugin {
 
         odom_delta_sub = node->create_subscription<dvl_msgs::msg::DVLOdomWithConfidence>(
             "/dvl/confidence_odom", 10, std::bind(&VisionPositionDeltaPlugin::odom_delta_cb, this, _1));
+        set_origin_srv = node->create_service<std_srvs::srv::Trigger>(
+            "~/set_ekf_origin", std::bind(&VisionPositionDeltaPlugin::set_origin_cb, this, _1, _2));
 
         // Parameters for time delta handling
         node_declare_and_watch_parameter(
@@ -47,14 +50,35 @@ class VisionPositionDeltaPlugin : public plugin::Plugin {
 
    private:
     rclcpp::Subscription<dvl_msgs::msg::DVLOdomWithConfidence>::SharedPtr odom_delta_sub;
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_origin_srv;
 
     int64_t time_delta_usec;
     rclcpp::Time last_delta_stamp{0, 0, RCL_ROS_TIME};
+    int32_t origin_lat = 388897012;    // Replace with real value (degrees * 1E7)
+    int32_t origin_lon = -770089321;  // Replace with real value (degrees * 1E7)
+    int32_t origin_alt = 10000;      // In millimeters
 
     /* -*- low-level send -*- */
     /**
      * @brief Send vision position delta to FCU
      */
+    void set_origin_cb(
+        const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+        std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
+        mavlink::common::msg::SET_GPS_GLOBAL_ORIGIN origin_msg{};
+        origin_msg.target_system = uas->get_tgt_system();
+        origin_msg.latitude = origin_lat;
+        origin_msg.longitude = origin_lon;
+        origin_msg.altitude = origin_alt;
+
+        RCLCPP_INFO(get_logger(), "Sending SET_GPS_GLOBAL_ORIGIN: lat=%d lon=%d alt=%d", origin_lat, origin_lon, origin_alt);
+
+        uas->send_message(origin_msg);
+
+        response->success = true;
+        response->message = "EKF origin set successfully";
+    }
+
     void send_vision_position_delta(
         const rclcpp::Time& stamp,
         const Eigen::Vector3d& position_delta,
